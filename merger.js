@@ -10,8 +10,8 @@ var sqs = new AWS.SQS({apiVersion: '2012-11-05'});
 //var uploadParams = {Bucket: process.argv[2], Key: '', Body: ''};
 var uploadParams = {Bucket: 'pavan-kalyan-reddy-thota', Key: '', Body: ''};
 
-//var file = process.argv[3];
-var file = "venkat.txt"
+var file = process.argv[2];
+//var file = "0_cat.png"
 
 // Configure the file stream and obtain the upload parameters
 var fs = require('fs');
@@ -31,7 +31,6 @@ async function uploder(){
 
   var params = {
     // Remove DelaySeconds parameter and value for FIFO queues
-   DelaySeconds: 10,
    MessageAttributes: {
      "Key": {
        DataType: "String",

@@ -7,6 +7,7 @@ AWS.config.update({region: 'us-east-1'});
 var sqs = new AWS.SQS({apiVersion: '2012-11-05'});
 
 var params = {
+
   QueueName: 'OutputQueue',
   Attributes: {
     'DelaySeconds': '60',
