@@ -1,6 +1,5 @@
 // Load the AWS SDK for Node.js
 var AWS = require('aws-sdk');
-const { count } = require('console');
 // Set the region
 AWS.config.loadFromPath('./config.json');
 AWS.config.update({region: 'us-east-1'});
@@ -19,7 +18,7 @@ var params = {
  ],
  QueueUrl: queueURL,
  VisibilityTimeout: 15,
- WaitTimeSeconds: 20
+ WaitTimeSeconds: 30
 };
 
 
@@ -35,7 +34,7 @@ let QueueCountParams = {
 };
 
 const count = await sqs.getQueueAttributes(QueueCountParams).promise().then(data =>{
-    return parseInt(data.Attributes.ApproximateNumberOfMessages);
+    return parseInt(data.Attributes.ApproximateNumberOfMessages)+parseInt(data.Attributes.ApproximateNumberOfMessagesNotVisible)+parseInt(data.Attributes.ApproximateNumberOfMessagesDelayed);
 },err=>{
     Promise.reject(err);
    // return 0;
@@ -59,15 +58,14 @@ async function getCurrentFileFromInputQueue()
       "All"
    ],
    QueueUrl: queueURL,
-   VisibilityTimeout: 15,
+   VisibilityTimeout: 20,
    WaitTimeSeconds: 20
   };
   const currentFile = await sqs.receiveMessage(params).promise().then(data =>{
     if(!data.Messages)
     {
       console.log("Queue is empty Now")
-       check=true;
-        return ;
+        return null ;
   
     } else if (data.Messages) {
         
@@ -169,6 +167,13 @@ console.log("Inside Looooop")
 const currentFile = await getCurrentFileFromInputQueue().then(data=>{
   return data;
 });
+
+if(currentFile==null)
+{
+   return;
+
+}
+
 // Create S3 service object
 s3 = new AWS.S3({apiVersion: '2006-03-01'});
 console.log(currentFile);
@@ -219,5 +224,19 @@ let predictedOutput = await pythonRun(file.path).then(data=>{
 
 }
 
+
+console.log("AT THE END")
+
+var meta  = new AWS.MetadataService();
+
+meta.request("/latest/meta-data/instance-id", function(err, data){
+    console.log(data);
+});
+
+
+
 }
+
+
+
 
