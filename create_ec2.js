@@ -4,21 +4,56 @@ var AWS = require('aws-sdk');
 AWS.config.update({region: 'us-east-1'});
 
 // Create EC2 service object
-var ec2 = new AWS.EC2({apiVersion: '2016-11-15'});
 
+var sqs = new AWS.SQS({apiVersion: '2012-11-05'});
+
+
+
+
+// Handle promise's fulfilled/rejected states
+
+
+async function getInputQueueLength()
+{
+
+let QueueCountParams = {
+    QueueUrl: "https://sqs.us-east-1.amazonaws.com/928329822548/InputQueue",
+    AttributeNames: ['ApproximateNumberOfMessages',
+        'ApproximateNumberOfMessagesNotVisible',
+        'ApproximateNumberOfMessagesDelayed']
+};
+
+const count = await sqs.getQueueAttributes(QueueCountParams).promise().then(data =>{
+    return parseInt(data.Attributes.ApproximateNumberOfMessages)+parseInt(data.Attributes.ApproximateNumberOfMessagesNotVisible)+parseInt(data.Attributes.ApproximateNumberOfMessagesDelayed);
+},err=>{
+    Promise.reject(err);
+   // return 0;
+});
+ 
+ console.log("My count is "+count);
+   return count;
+
+}
+
+async function getInstances(){
+  
 // AMI is amzn-ami-2011.09.1.x86_64-ebs
 var instanceParams = {
-   ImageId: 'ami-0ee8cf7b8a34448a6', 
-   InstanceType: 't2.micro',
-   KeyName: 'KeyPair1',
-   MinCount: 1,
-   MaxCount: 1
+  ImageId: 'ami-0a0f5927a3f3d4547', 
+  InstanceType: 't2.micro',
+  KeyName: 'KeyPair1',
+  MinCount: 1,
+  MaxCount: 1
 };
+
+  let instanceCount = await getInputQueueLength().then(data=>{
+    return data;
+  });
+  instanceParams.MaxCount =instanceCount-4;
+  console.log(instanceParams.MaxCount)
 
 // Create a promise on an EC2 service object
 var instancePromise = new AWS.EC2({apiVersion: '2016-11-15'}).runInstances(instanceParams).promise();
-
-// Handle promise's fulfilled/rejected states
 instancePromise.then(
   function(data) {
     console.log(data);
@@ -27,7 +62,7 @@ instancePromise.then(
     // Add tags to the instance
     tagParams = {Resources: [instanceId], Tags: [
        {
-          Key: 'AppTier_1',
+         Key: 'AppTier_1',
           Value: 'SDK Sample'
        }
     ]};
@@ -45,3 +80,11 @@ instancePromise.then(
     function(err) {
     console.error(err, err.stack);
   });
+
+}
+
+getInstances();
+
+
+
+
