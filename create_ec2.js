@@ -39,7 +39,7 @@ async function getInstances(){
   
 // AMI is amzn-ami-2011.09.1.x86_64-ebs
 var instanceParams = {
-  ImageId: 'ami-0a0f5927a3f3d4547', 
+  ImageId: 'ami-0743ae217159b0f27', 
   InstanceType: 't2.micro',
   KeyName: 'KeyPair1',
   MinCount: 1,
@@ -49,7 +49,17 @@ var instanceParams = {
   let instanceCount = await getInputQueueLength().then(data=>{
     return data;
   });
-  instanceParams.MaxCount =instanceCount-4;
+
+  if(instanceCount<=19)
+ { 
+   instanceParams.MaxCount =instanceCount;
+ }
+else 
+{
+    instanceParams.MaxCount =19;
+
+}
+
   console.log(instanceParams.MaxCount)
 
 // Create a promise on an EC2 service object
