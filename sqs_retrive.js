@@ -8,95 +8,128 @@ var sqs = new AWS.SQS({apiVersion: '2012-11-05'});
 
 var queueURL = "https://sqs.us-east-1.amazonaws.com/928329822548/OutputQueue";
 
-var params = {
- AttributeNames: [
-    "SentTimestamp"
- ],
- MaxNumberOfMessages: 10,
- MessageAttributeNames: [
-    "All"
- ],
- QueueUrl: queueURL,
- VisibilityTimeout: 2,
- WaitTimeSeconds: 0
+
+//Get length of output queue
+async function getOutputQueueLength()
+{
+let QueueCountParams = {
+    QueueUrl: "https://sqs.us-east-1.amazonaws.com/928329822548/OutputQueue",
+    AttributeNames: ['ApproximateNumberOfMessages',
+        'ApproximateNumberOfMessagesNotVisible',
+        'ApproximateNumberOfMessagesDelayed']
 };
 
-x=3
-while(x>0)
+const count = await sqs.getQueueAttributes(QueueCountParams).promise().then(data =>{
+    return parseInt(data.Attributes.ApproximateNumberOfMessages)+parseInt(data.Attributes.ApproximateNumberOfMessagesNotVisible)+parseInt(data.Attributes.ApproximateNumberOfMessagesDelayed);
+},err=>{
+    Promise.reject(err);
+   // return 0;
+});
+ 
+ //console.log("My count is "+count);
+   return count;
+
+}
+
+let dataMesg;
+async function getCurrentFileFromOutputQueue()
 {
-    x=x-1;
-sqs.receiveMessage(params, function(err, data) {
-  if (err) {
-    console.log("Receive Error", err);
-  } else if (data.Messages) {
+  var queueURL = "https://sqs.us-east-1.amazonaws.com/928329822548/OutputQueue";
+
+  var params = {
+   AttributeNames: [
+      "SentTimestamp"
+   ],
+   MaxNumberOfMessages: 10,
+   MessageAttributeNames: [
+      "All"
+   ],
+   QueueUrl: queueURL,
+   VisibilityTimeout: 10,
+   WaitTimeSeconds: 10
+  };
+  const currentFile = await sqs.receiveMessage(params).promise().then(data =>{
+    if(!data.Messages)
+    {
+      //console.log("Queue is empty Now")
+        return null ;
   
-    console.log(data.Messages);
-   console.log(data.Messages[0].MessageAttributes.Key.StringValue);
+    } else if (data.Messages) {
+        
+     
+            // console.log(data.Messages[0].MessageAttributes.Key.StringValue);
+      
+          //current file
+          dataMesg = data;
+            return data.Messages[0].MessageAttributes.Key.StringValue ;
+        }
+      
+  });
+  return currentFile;
 
-     let currentFile = data.Messages[0].MessageAttributes.Key.StringValue ;
-         
-                   
+    
+  
+}
 
-                    // Create S3 service object
-                    s3 = new AWS.S3({apiVersion: '2006-03-01'});
+async function deleteFromSQS(){
+  var queueURL = "https://sqs.us-east-1.amazonaws.com/928329822548/OutputQueue";
+  var deleteParams = {
+    QueueUrl: queueURL,
+    ReceiptHandle: dataMesg.Messages[0].ReceiptHandle
+  };
+const data = await sqs.deleteMessage(deleteParams).promise().then(data=>{
+    return data;
+  }) 
+  return data;
+}
 
-                    // Create the parameters for calling listObjects
+rerunAgain();
 
-                    // var bucketParams = {
-                    // Bucket : 'output-bucket-group-pavan',
-                    // };
+async function rerunAgain(){
 
-                    // Call S3 to obtain a list of the objects in the bucket
-                    // s3.listObjects(bucketParams, function(err, data) {
-                    // if (err) {
-                    //     console.log("Error", err);
-                    // } else {
-                    //     console.log("Success", data);
+let count = await getOutputQueueLength().then(data=>{
+    return data;
+});
 
-                    // }
-                    // });
+while(count>0)
+{
 
-                    var params = {Bucket: 'output-bucket-group-pavan', Key: currentFile}
+  const currentFile = await getCurrentFileFromOutputQueue().then(data=>{
+    return data;
+  });
+  
+  if(currentFile==null)
+  {
+     return;
+  }
+  // Create S3 service object
+s3 = new AWS.S3({apiVersion: '2006-03-01'});
+    
+var params = {Bucket: 'output-bucket-group-pavan', Key: currentFile}
 
-                    var file = require('fs').createWriteStream('OutputFromOutputBucket.txt');
                    // file.appendFileSync('OutputFromOutputBucket.txt', 'data to append');
                    // s3.getObject(params).createReadStream().pipe(file);
 
-
-
-                    s3.getObject(params, function(err,data) {
-                        if(err) {
-                         console.log(err,err.stack);
-                        }
-                        else {
-                         console.log(data.Body.toString('utf-8'));
-                        }
-                       });
-
+//to download to current folder
+var file = require('fs').createWriteStream('OutputFromOutputBucket.txt');    
     
-
-
-
-
-
-
-
-    var deleteParams = {
-      QueueUrl: queueURL,
-      ReceiptHandle: data.Messages[0].ReceiptHandle
-    };
-
-
-    sqs.deleteMessage(deleteParams, function(err, data) {
-      if (err) {
-        console.log("Delete Error", err);
-      } else {
-        console.log("Message Deleted", data);
-      }
-    });
-
+s3.getObject(params, function(err,data) {
+  if(err) {
+   console.log(err,err.stack);
   }
-});
+  else {
+   console.log(data.Body.toString('utf-8'));
+  }
+ });
+
+const deletedData = await deleteFromSQS().then(data=>{
+    return data;
+  });
+  //console.log("Data deleted is"+deletedData);
 
 console.log("------")
+count = await getOutputQueueLength().then(data=>{
+  return data;
+});
+}
 }

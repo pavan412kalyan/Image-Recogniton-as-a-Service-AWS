@@ -6,6 +6,9 @@ AWS.config.update({region: 'us-east-1'});
 // Create an SQS service object
 var sqs = new AWS.SQS({apiVersion: '2012-11-05'});
 
+// create an ec2 object
+const ec2 = new AWS.EC2({apiVersion: '2016-11-15'});
+
 var queueURL = "https://sqs.us-east-1.amazonaws.com/928329822548/InputQueue";
 
 var params = {
@@ -170,6 +173,38 @@ const currentFile = await getCurrentFileFromInputQueue().then(data=>{
 
 if(currentFile==null)
 {
+  console.log("AT THE END")
+
+var meta  = new AWS.MetadataService();
+
+meta.request("/latest/meta-data/instance-id", function(err, data){
+   // console.log(data);
+   CurrentInstanceID= data;
+
+   
+// setup params
+const Terminateparams = {
+  InstanceIds: [
+    CurrentInstanceID    
+  ]
+};
+
+console.log("Terminating....");
+ec2.terminateInstances(Terminateparams, function(err, data) {
+  if (err) {
+    console.log(err, err.stack); // an error occurred
+  } else {
+    console.log(data);           // successful response
+   //
+
+  }  
+});
+
+
+
+
+
+});
    return;
 
 }
@@ -230,7 +265,32 @@ console.log("AT THE END")
 var meta  = new AWS.MetadataService();
 
 meta.request("/latest/meta-data/instance-id", function(err, data){
-    console.log(data);
+   // console.log(data);
+   CurrentInstanceID= data;
+
+   
+// setup params
+const Terminateparams = {
+  InstanceIds: [
+    CurrentInstanceID    
+  ]
+};
+
+console.log("Terminating....");
+ec2.terminateInstances(Terminateparams, function(err, data) {
+  if (err) {
+    console.log(err, err.stack); // an error occurred
+  } else {
+    console.log(data);           // successful response
+   //
+
+  }  
+});
+
+
+
+
+
 });
 
 

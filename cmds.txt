@@ -1,0 +1,7 @@
+ node .\merger.js .\1_ship.png && node .\merger.js .\2_ship.png && node .\merger.js .\3_airplane.png && node .\merger.js .\130_deer.png && node .\merger.js .\0_cat.png
+
+
+aws ec2 run-instances --image-id ami-0ee8cf7b8a34448a6 --count 1 --instance-type t2.micro \ --key-name KeyPair1 --subnet-id subnet-75488544 --security-group-ids sg-d5ca0fe7 \ -user-data "cat hello.txt"
+
+
+ node .\merger.js .\test_0.jpg && node .\merger.js .\test_1.jpg && node .\merger.js .\test_2.jpg && node .\merger.js .\test_3.jpg && node .\merger.js .\test_4.jpg && node .\merger.js .\test_5.jpg && node .\merger.js .\test_6.jpg && node .\merger.js .\test_7.jpg && node .\merger.js .\test_8.jpg && node .\merger.js .\test_9.jpg
