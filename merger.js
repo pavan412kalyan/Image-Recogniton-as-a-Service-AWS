@@ -1,5 +1,6 @@
 var AWS = require('aws-sdk');
 // Set the region 
+AWS.config.loadFromPath('./config.json');
 AWS.config.update({region: 'us-east-1'});
 
 // Create S3 service object
@@ -48,6 +49,7 @@ async function uploder(){
 
  if (Data) {
     //console.log("Upload Success---", Data.Location);
+    
 
     sqs.sendMessage(params, function(err, data) {
         if (err) {
@@ -57,6 +59,27 @@ async function uploder(){
         }
       });
   }
+
+
+
+
+  const fs = require('fs')
+
+  const Deletepath = file
+  
+  fs.unlink(Deletepath, (err) => {
+    if (err) {
+      console.error(err)
+      return
+    }
+  
+    //file removed
+  })
+
+
+
+
+
 
 
 }

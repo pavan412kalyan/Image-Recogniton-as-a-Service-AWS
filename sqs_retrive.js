@@ -1,6 +1,7 @@
 // Load the AWS SDK for Node.js
 var AWS = require('aws-sdk');
 // Set the region
+AWS.config.loadFromPath('./config.json');
 AWS.config.update({region: 'us-east-1'});
 
 // Create an SQS service object
@@ -83,16 +84,23 @@ const data = await sqs.deleteMessage(deleteParams).promise().then(data=>{
   return data;
 }
 
-rerunAgain();
+// (async () => {
+// const data = await rerunAgain().then(data=>{
+//   return data;
+// }) 
+// return data;
+// })();
 
-async function rerunAgain(){
 
+async function rerunAgain(callback){
+  console.log("in rerunagain")
+let msg = "";
 let count = await getOutputQueueLength().then(data=>{
     return data;
 });
-
-while(count>0)
+while(true)
 {
+  console.log(count);
 
   const currentFile = await getCurrentFileFromOutputQueue().then(data=>{
     return data;
@@ -100,7 +108,7 @@ while(count>0)
   
   if(currentFile==null)
   {
-     return;
+     break;
   }
   // Create S3 service object
 s3 = new AWS.S3({apiVersion: '2006-03-01'});
@@ -118,7 +126,7 @@ s3.getObject(params, function(err,data) {
    console.log(err,err.stack);
   }
   else {
-   console.log(data.Body.toString('utf-8'));
+   msg += data.Body.toString('utf-8');
   }
  });
 
@@ -128,8 +136,10 @@ const deletedData = await deleteFromSQS().then(data=>{
   //console.log("Data deleted is"+deletedData);
 
 console.log("------")
-count = await getOutputQueueLength().then(data=>{
-  return data;
-});
 }
+// return msg;
+console.log(msg)
+callback(msg);
 }
+
+module.exports = {rerunAgain}
