@@ -1,6 +1,7 @@
 // Load the AWS SDK for Node.js
 var AWS = require('aws-sdk');
 // Load credentials and set region from JSON file
+AWS.config.loadFromPath('./config.json');
 AWS.config.update({region: 'us-east-1'});
 
 // Create EC2 service object
@@ -61,6 +62,7 @@ else
 }
 
   console.log(instanceParams.MaxCount)
+
 
 // Create a promise on an EC2 service object
 var instancePromise = new AWS.EC2({apiVersion: '2016-11-15'}).runInstances(instanceParams).promise();
