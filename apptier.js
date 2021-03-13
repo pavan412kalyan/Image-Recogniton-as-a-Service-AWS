@@ -161,10 +161,7 @@ rerunAgain();
 
 async function rerunAgain(){
 
-let count = await getInputQueueLength().then(data=>{
-    return data;
-  });
-while(count>0) 
+while(true) 
 {
 console.log("Inside Looooop")
 const currentFile = await getCurrentFileFromInputQueue().then(data=>{
@@ -173,40 +170,7 @@ const currentFile = await getCurrentFileFromInputQueue().then(data=>{
 
 if(currentFile==null)
 {
-  console.log("AT THE END")
-
-var meta  = new AWS.MetadataService();
-
-meta.request("/latest/meta-data/instance-id", function(err, data){
-   // console.log(data);
-   CurrentInstanceID= data;
-
-   
-// setup params
-const Terminateparams = {
-  InstanceIds: [
-    CurrentInstanceID    
-  ]
-};
-
-console.log("Terminating....");
-ec2.terminateInstances(Terminateparams, function(err, data) {
-  if (err) {
-    console.log(err, err.stack); // an error occurred
-  } else {
-    console.log(data);           // successful response
-   //
-
-  }  
-});
-
-
-
-
-
-});
-   return;
-
+   break;
 }
 
 // Create S3 service object
@@ -252,9 +216,6 @@ let predictedOutput = await pythonRun(file.path).then(data=>{
  console.log("++++");                     
   
   console.log("------")
-  count = await getInputQueueLength().then(data=>{
-    return data;
-  });
 
 
 }
