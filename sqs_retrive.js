@@ -46,8 +46,8 @@ async function getCurrentFileFromOutputQueue()
       "All"
    ],
    QueueUrl: queueURL,
-   VisibilityTimeout: 10,
-   WaitTimeSeconds: 10
+   VisibilityTimeout: 50,
+   WaitTimeSeconds: 0
   };
   const currentFile = await sqs.receiveMessage(params).promise().then(data =>{
     if(!data.Messages)
@@ -127,6 +127,7 @@ s3.getObject(params, function(err,data) {
   }
   else {
    msg += data.Body.toString('utf-8');
+   msg += "\n";
   }
  });
 
