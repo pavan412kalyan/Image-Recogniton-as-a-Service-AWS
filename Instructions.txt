@@ -1,0 +1,1 @@
+Cron tab is needed to be set in App-Tier instance to start the run.sh script on reboot
