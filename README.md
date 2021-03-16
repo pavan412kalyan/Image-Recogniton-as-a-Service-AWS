@@ -8,7 +8,7 @@ This application is build using AWS SDK Libraries in JavaScript node.js and expr
 As all AWS requests are asynchronous in nature, it is necessary to handle them synchronously. We structured the code using Async and await functionalities by resolving promises and call backs. 
 
 ### Crontab:
-It is used run the shell command during EC2 reboot or start-up. This crontab helps in automatic startup of App-tier functionalities on EC2 app-tier startup. 
+It is used to run the shell command during EC2 reboot or start-up. This crontab helps in automatic startup of App-tier functionalities on EC2 app-tier startup. 
 
 ### Bash Scripting:
 We have used bash scripting in web-tier and app-tier. We have used Bash scripting to configure Controller (which is always up and running) in the Web-tier, and we have used Bash to configure Run (to start app-tier functionalities) in App-tier. 
