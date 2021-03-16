@@ -59,6 +59,17 @@ Create a new EC2 instance, from a Linux AMI, and install node.js dependencies an
 
 
 
+# RESULTS
+BATCH SIZE (NO OF IMAGES) | NON-ELASTIC APPLICATION | ELASTIC APPLICATION
+| :--- | ---: | :---:
+10  |6 minutes	|4 minutes
+30	|11 minutes	|5 minutes
+100	|25 minutes	|6 minutes
+
+
+
+
+
 
 
 
